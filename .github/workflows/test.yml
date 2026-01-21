@@ -19,7 +19,7 @@ jobs:
       - name: asdf plugin test
         uses: asdf-vm/actions/plugin-test@v3
         with:
-          command: swiftly --version
+          command: swiftly --help
 
   lint:
     runs-on: ubuntu-latest
