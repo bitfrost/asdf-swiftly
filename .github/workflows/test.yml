@@ -30,5 +30,6 @@ jobs:
       - name: Run ShellCheck
         uses: ludeeus/action-shellcheck@master
         with:
-          scandir: './bin'
+          scandir: '.'
           severity: warning
+          ignore_paths: bin/help.overview bin/help.deps bin/help.links

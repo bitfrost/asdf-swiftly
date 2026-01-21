@@ -46,13 +46,17 @@ get_arch() {
   esac
 }
 
-# Get curl options
-curl_opts() {
-  local -a opts=()
-  opts+=(-fsSL)
-  opts+=(--retry 3)
-  opts+=(--retry-delay 1)
-  echo "${opts[@]}"
+# Find executable files (cross-platform)
+# macOS uses -perm +111, Linux uses -perm /111 or -executable
+find_executable() {
+  local dir="$1"
+  local name="$2"
+
+  # Try -executable first (GNU find), fall back to -perm /111, then -perm +111 (BSD)
+  find "$dir" -name "$name" -type f -executable 2>/dev/null | head -1 ||
+    find "$dir" -name "$name" -type f -perm /111 2>/dev/null | head -1 ||
+    find "$dir" -name "$name" -type f -perm +111 2>/dev/null | head -1 ||
+    echo ""
 }
 
 # Get the download URL for swiftly
@@ -99,7 +103,7 @@ download_file() {
 
   echo "Downloading ${TOOL_NAME} from ${url}..."
 
-  if ! curl $(curl_opts) -o "$output" "$url"; then
+  if ! curl -fsSL --retry 3 --retry-delay 1 -o "$output" "$url"; then
     fail "Failed to download ${TOOL_NAME} from ${url}"
   fi
 }
@@ -177,6 +181,7 @@ install_from_pkg() {
   local temp_dir
 
   temp_dir="$(mktemp -d)"
+  # shellcheck disable=SC2064
   trap "rm -rf '$temp_dir'" EXIT
 
   echo "Extracting package..."
@@ -211,7 +216,7 @@ install_from_pkg() {
 
   # Find the swiftly binary
   local swiftly_bin
-  swiftly_bin="$(find "$payload_dir" -name 'swiftly' -type f -perm +111 2>/dev/null | head -1)"
+  swiftly_bin="$(find_executable "$payload_dir" 'swiftly')"
 
   if [ -z "$swiftly_bin" ]; then
     # Try alternative search - may be in a different structure
@@ -236,6 +241,7 @@ install_from_tarball() {
   local temp_dir
 
   temp_dir="$(mktemp -d)"
+  # shellcheck disable=SC2064
   trap "rm -rf '$temp_dir'" EXIT
 
   echo "Extracting tarball..."
@@ -246,7 +252,7 @@ install_from_tarball() {
 
   # Find the swiftly binary
   local swiftly_bin
-  swiftly_bin="$(find "$temp_dir" -name 'swiftly' -type f -perm +111 2>/dev/null | head -1)"
+  swiftly_bin="$(find_executable "$temp_dir" 'swiftly')"
 
   if [ -z "$swiftly_bin" ]; then
     # The tarball might just contain the binary directly
