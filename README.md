@@ -22,7 +22,7 @@ Swiftly is a Swift toolchain installer and manager, written in Swift. It allows 
 Plugin:
 
 ```shell
-asdf plugin add swiftly https://github.com/YOUR_USERNAME/asdf-swiftly.git
+asdf plugin add swiftly https://github.com/bitfrost/asdf-swiftly.git
 ```
 
 Or for local development:
